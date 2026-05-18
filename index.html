@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GlowFusion Pro — Skin Assessment</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f9f9f7; color: #1a1a1a; min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 2rem 1rem; }
+  .quiz-wrap { background: #fff; border-radius: 16px; border: 1px solid #e8e6e0; padding: 2rem; max-width: 620px; width: 100%; }
+  .brand { font-size: 13px; color: #888; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 1.5rem; }
+  .progress-bg { height: 4px; background: #eee; border-radius: 2px; margin-bottom: 2rem; }
+  .progress-fill { height: 4px; background: #1D9E75; border-radius: 2px; transition: width 0.4s ease; }
+  .step { display: none; }
+  .step.active { display: block; }
+  .step-label { font-size: 12px; color: #aaa; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.5rem; }
+  .question { font-size: 20px; font-weight: 500; color: #111; margin-bottom: 0.4rem; line-height: 1.4; }
+  .subtext { font-size: 14px; color: #666; margin-bottom: 1.5rem; line-height: 1.6; }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .opt { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border: 1px solid #e8e6e0; border-radius: 12px; cursor: pointer; transition: border-color 0.15s, background 0.15s; background: #fafaf9; }
+  .opt:hover { border-color: #1D9E75; background: #f0faf6; }
+  .opt.selected { border-color: #1D9E75; background: #e1f5ee; }
+  .opt-radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #ccc; flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; transition: border-color 0.15s; }
+  .opt.selected .opt-radio { border-color: #1D9E75; }
+  .opt-dot { width: 8px; height: 8px; border-radius: 50%; background: #1D9E75; display: none; }
+  .opt.selected .opt-dot { display: block; }
+  .opt-text { font-size: 15px; color: #111; line-height: 1.5; }
+  .opt-sub { font-size: 13px; color: #888; margin-top: 2px; }
+  .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; }
+  .btn { padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; border: 1px solid #ddd; background: transparent; color: #333; transition: background 0.15s; }
+  .btn:hover { background: #f5f5f5; }
+  .btn-primary { background: #1D9E75; color: #fff; border-color: #1D9E75; }
+  .btn-primary:hover { background: #0F6E56; }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* Result */
+  .res-badge { display: inline-block; font-size: 12px; padding: 4px 12px; border-radius: 8px; background: #e1f5ee; color: #085041; margin-bottom: 1rem; letter-spacing: 0.04em; }
+  .res-title { font-size: 20px; font-weight: 500; color: #111; margin-bottom: 0.4rem; }
+  .res-intro { font-size: 14px; color: #666; line-height: 1.7; margin-bottom: 1.5rem; }
+  .frames { display: flex; flex-direction: column; gap: 12px; margin-bottom: 1.5rem; }
+  .frame { border-radius: 12px; padding: 1.1rem 1.25rem; border-left: 4px solid; }
+  .frame-1 { background: #e6f1fb; border-color: #185FA5; }
+  .frame-2 { background: #eeedfe; border-color: #534AB7; }
+  .frame-3 { background: #e1f5ee; border-color: #0F6E56; }
+  .frame-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .frame-num { width: 22px; height: 22px; border-radius: 50%; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; }
+  .frame-1 .frame-num { background: #185FA5; }
+  .frame-2 .frame-num { background: #534AB7; }
+  .frame-3 .frame-num { background: #0F6E56; }
+  .frame-name { font-size: 14px; font-weight: 500; }
+  .frame-1 .frame-name { color: #0C447C; }
+  .frame-2 .frame-name { color: #3C3489; }
+  .frame-3 .frame-name { color: #085041; }
+  .frame-role { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 4px; margin-left: auto; font-weight: 500; }
+  .frame-1 .frame-role { background: #185FA5; color: #e6f1fb; }
+  .frame-2 .frame-role { background: #534AB7; color: #eeedfe; }
+  .frame-3 .frame-role { background: #0F6E56; color: #e1f5ee; }
+  .frame-desc { font-size: 13px; line-height: 1.65; }
+  .frame-1 .frame-desc { color: #0C447C; }
+  .frame-2 .frame-desc { color: #3C3489; }
+  .frame-3 .frame-desc { color: #085041; }
+  .cta-btn { display: block; width: 100%; padding: 14px; background: #1D9E75; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 500; cursor: pointer; text-align: center; text-decoration: none; transition: background 0.15s; }
+  .cta-btn:hover { background: #0F6E56; }
+</style>
+</head>
+<body>
+<div class="quiz-wrap">
+  <p class="brand">GlowFusion Pro — Skin Assessment</p>
+  <div class="progress-bg"><div class="progress-fill" id="prog" style="width:10%"></div></div>
+
+  <div class="step active" id="s1">
+    <p class="step-label">Question 1 of 9</p>
+    <p class="question">What is your primary skin concern right now?</p>
+    <p class="subtext">Choose the one that bothers you most. This guides which stage of the protocol matters most for you.</p>
+    <div class="options">
+      <div class="opt" onclick="pick(this,'s1')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">Dark spots, age spots, or uneven tone<div class="opt-sub">Visible discoloration or hyperpigmentation</div></div></div>
+      <div class="opt" onclick="pick(this,'s1')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">Redness or post-inflammatory marks<div class="opt-sub">Lingering pink or purple discoloration</div></div></div>
+      <div class="opt" onclick="pick(this,'s1')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">Dull, uneven, or lacklustre skin<div class="opt-sub">Skin that looks tired or lacks glow</div></div></div>
+      <div class="opt" onclick="pick(this,'s1')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">Multiple concerns at once<div class="opt-sub">Pigmentation, dullness, redness combined</div></div></div>
+    </div>
+  </div>
+
+  <div class="step" id="s2">
+    <p class="step-label">Question 2 of 9</p>
+    <p class="question">How long have you been dealing with this concern?</p>
+    <p class="subtext">Duration shapes how deep pigmentation has settled and which protocol intensity is right for you.</p>
+    <div class="options">
+      <div class="opt" onclick="pick(this,'s2')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">Less than 6 months<div class="opt-sub">Recent onset — early-stage improvement likely</div></div></div>
+      <div class="opt" onclick="pick(this,'s2')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">6 months to 2 years<div class="opt-sub">Established discoloration that needs active treatment</div></div></div>
+      <div class="opt" onclick="pick(this,'s2')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">More than 2 years<div class="opt-sub">Deep, persistent pigmentation requiring systemic approach</div></div></div>
+    </div>
+  </div>
+
+  <div class="step" id="s3">
+    <p class="step-label">Question 3 of 9</p>
+    <p class="question">What have you already tried for this concern?</p>
+    <p class="subtext">Understanding your history helps us explain why GlowFusion Pro works differently.</p>
+    <div class="options">
+      <div class="opt" onclick="pick(this,'s3')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">Topical serums or creams only<div class="opt-sub">Products applied to the surface</div></div></div>
+      <div class="opt" onclick="pick(this,'s3')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">Retinol or hydroquinone-based products<div class="opt-sub">Active ingredients but surface-level delivery</div></div></div>
+      <div class="opt" onclick="pick(this,'s3')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">Professional treatments (peels, lasers)<div class="opt-sub">Clinic-based procedures</div></div></div>
+      <div class="opt" onclick="pick(this,'s3')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">Nothing yet — this would be my first targeted treatment</div></div></div>
+    </div>
+  </div>
+
+  <div class="step" id="s4">
+    <p class="step-label">Question 4 of 9</p>
+    <p class="question">How does your skin typically react to active skincare?</p>
+    <p class="subtext">GlowFusion Pro is designed to be non-irritating — but knowing your skin helps us set the right expectations.</p>
+    <div class="options">
+      <div class="opt" onclick="pick(this,'s4')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">Tolerates most actives well<div class="opt-sub">Rarely experiences redness or sensitivity</div></div></div>
+      <div class="opt" onclick="pick(this,'s4')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">Mild sensitivity — some products cause redness<div class="opt-sub">Occasional irritation but manageable</div></div></div>
+      <div class="opt" onclick="pick(this,'s4')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">Reactive or sensitive — most actives irritate<div class="opt-sub">Strict limitations on what skin can tolerate</div></div></div>
+    </div>
+  </div>
+
+  <div class="step" id="s5">
+    <p class="step-label">Question 5 of 9</p>
+    <p class="question">How familiar are you with PDRN technology?</p>
+    <p class="subtext">PDRN (Polydeoxyribonucleotide) is the active ingredient at the core of Stage 1. It's placed at dermal depth — not just applied on top.</p>
+    <div class="options">
+      <div class="opt" onclick="pick(this,'s5')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">Never heard of it — this is new to me</div></div>
+      <div class="opt" onclick="pick(this,'s5')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">I've heard of it but don't know how it works</div></div>
+      <div class="opt" onclick="pick(this,'s5')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">I know it well — I've researched or used it before</div></div>
+    </div>
+  </div>
+
+  <div class="step" id="s6">
+    <p class="step-label">Question 6 of 9</p>
+    <p class="question">What matters most to you in a skincare protocol?</p>
+    <p class="subtext">There are no wrong answers — this helps us highlight the right benefits for you.</p>
+    <div class="options">
+      <div class="opt" onclick="pick(this,'s6')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">Visible, measurable results<div class="opt-sub">I want to see real changes in my skin</div></div></div>
+      <div class="opt" onclick="pick(this,'s6')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">Safety and skin health<div class="opt-sub">No harsh ingredients — proven and tested</div></div></div>
+      <div class="opt" onclick="pick(this,'s6')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">Long-term prevention<div class="opt-sub">Protect against future damage and aging</div></div></div>
+      <div class="opt" onclick="pick(this,'s6')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">All of the above equally</div></div>
+    </div>
+  </div>
+
+  <div class="step" id="s7">
+    <p class="step-label">Question 7 of 9</p>
+    <p class="question">How much time can you dedicate to a skincare protocol?</p>
+    <div class="options">
+      <div class="opt" onclick="pick(this,'s7')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">5–10 minutes<div class="opt-sub">Minimal commitment, maximum efficiency</div></div></div>
+      <div class="opt" onclick="pick(this,'s7')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">10–20 minutes<div class="opt-sub">A dedicated routine with proper technique</div></div></div>
+      <div class="opt" onclick="pick(this,'s7')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">20+ minutes<div class="opt-sub">I treat skincare as a focused self-care ritual</div></div></div>
+    </div>
+  </div>
+
+  <div class="step" id="s8">
+    <p class="step-label">Question 8 of 9</p>
+    <p class="question">Have you used at-home skincare devices before?</p>
+    <div class="options">
+      <div class="opt" onclick="pick(this,'s8')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">No — this would be my first device<div class="opt-sub">Looking for clear guidance and safety</div></div></div>
+      <div class="opt" onclick="pick(this,'s8')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">Yes — I've used microneedling, LED, or microcurrent<div class="opt-sub">Comfortable with at-home device use</div></div></div>
+      <div class="opt" onclick="pick(this,'s8')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">Yes — I've used professional-grade devices at home<div class="opt-sub">Experienced with advanced technology</div></div></div>
+    </div>
+  </div>
+
+  <div class="step" id="s9">
+    <p class="step-label">Question 9 of 9</p>
+    <p class="question">What result would make this protocol a clear success for you?</p>
+    <div class="options">
+      <div class="opt" onclick="pick(this,'s9')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">Noticeably reduced dark spots and discoloration</div></div>
+      <div class="opt" onclick="pick(this,'s9')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">Brighter, more luminous and even skin tone</div></div>
+      <div class="opt" onclick="pick(this,'s9')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">Long-term protection — no new spots forming</div></div>
+      <div class="opt" onclick="pick(this,'s9')"><div class="opt-radio"><div class="opt-dot"></div></div><div class="opt-text">Calmer, healthier skin with less redness overall</div></div>
+    </div>
+  </div>
+
+  <div class="step" id="result">
+    <span class="res-badge">Your skin profile</span>
+    <p class="res-title" id="res-title">The complete GlowFusion Pro protocol</p>
+    <p class="res-intro" id="res-intro">Based on your answers, the full 3-stage protocol is your ideal match.</p>
+    <div class="frames">
+      <div class="frame frame-1">
+        <div class="frame-header">
+          <div class="frame-num">1</div>
+          <span class="frame-name">PDRN microinfusion system</span>
+          <span class="frame-role" id="role1">Priority stage</span>
+        </div>
+        <p class="frame-desc" id="desc1">Gold-chrome pins create micro-channels while PDRN is placed directly at dermal depth — precisely where pigmentation originates. Not absorbed. Not applied topically. Delivered.</p>
+      </div>
+      <div class="frame frame-2">
+        <div class="frame-header">
+          <div class="frame-num">2</div>
+          <span class="frame-name">High-frequency device</span>
+          <span class="frame-role" id="role2">Drive deeper</span>
+        </div>
+        <p class="frame-desc" id="desc2">High frequency over open channels eliminates bacterial risk at the breach sites, then drives remaining PDRN deeper through mild electrical assist — amplifying results.</p>
+      </div>
+      <div class="frame frame-3">
+        <div class="frame-header">
+          <div class="frame-num">3</div>
+          <span class="frame-name">5X Centella relief serum</span>
+          <span class="frame-role" id="role3">Protect &amp; seal</span>
+        </div>
+        <p class="frame-desc" id="desc3">Applied while channels are still partially open, the serum seals deposited PDRN in place, accelerates closure, calms inflammation, and creates a protective barrier against environmental stressors.</p>
+      </div>
+    </div>
+    <a class="cta-btn" href="https://glowfusions.com/products/glowfusion-pro" target="_blank">Discover GlowFusion Pro →</a>
+  </div>
+
+  <div class="nav" id="nav-btns">
+    <button class="btn" id="btn-back" onclick="goBack()" disabled>Back</button>
+    <button class="btn btn-primary" id="btn-next" onclick="goNext()" disabled>Next</button>
+  </div>
+</div>
+
+<script>
+const steps = ['s1','s2','s3','s4','s5','s6','s7','s8','s9','result'];
+let cur = 0;
+const answers = {};
+
+function pick(el, stepId) {
+  document.querySelectorAll('#'+stepId+' .opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  answers[stepId] = el.querySelector('.opt-text').childNodes[0].textContent.trim();
+  document.getElementById('btn-next').disabled = false;
+}
+
+function goNext() {
+  if (cur < steps.length - 2) {
+    document.getElementById(steps[cur]).classList.remove('active');
+    cur++;
+    document.getElementById(steps[cur]).classList.add('active');
+    document.getElementById('prog').style.width = Math.round(((cur+1)/9)*100)+'%';
+    document.getElementById('btn-back').disabled = false;
+    document.getElementById('btn-next').disabled = !answers[steps[cur]];
+    if (cur === steps.length - 2) {
+      buildResult();
+      document.getElementById(steps[cur]).classList.remove('active');
+      cur++;
+      document.getElementById('result').classList.add('active');
+      document.getElementById('nav-btns').style.display = 'none';
+      document.getElementById('prog').style.width = '100%';
+    }
+  }
+}
+
+function goBack() {
+  if (cur > 0) {
+    document.getElementById(steps[cur]).classList.remove('active');
+    cur--;
+    document.getElementById(steps[cur]).classList.add('active');
+    document.getElementById('prog').style.width = Math.round(((cur+1)/9)*100)+'%';
+    document.getElementById('btn-back').disabled = cur === 0;
+    document.getElementById('btn-next').disabled = !answers[steps[cur]];
+  }
+}
+
+function buildResult() {
+  const concern = answers['s1'] || '';
+  const sensitivity = answers['s4'] || '';
+
+  if (concern.includes('Redness') || sensitivity.includes('Reactive')) {
+    document.getElementById('res-title').textContent = 'Protocol focus: Sensitivity & redness relief';
+    document.getElementById('res-intro').textContent = 'Your skin profile points to sensitivity as a key factor. The 5X Centella Relief Serum is particularly critical for you — combined with Stage 1 PDRN microinfusion for foundational repair.';
+    document.getElementById('role1').textContent = 'Foundation';
+    document.getElementById('role2').textContent = 'Activate';
+    document.getElementById('role3').textContent = 'Priority stage';
+    document.getElementById('desc3').textContent = 'Applied while channels are still partially open, Centella calms post-treatment inflammation, accelerates barrier recovery, and seals PDRN in place.';
+  } else if (concern.includes('Dull')) {
+    document.getElementById('res-title').textContent = 'Protocol focus: Luminosity & radiance — all 3 stages';
+    document.getElementById('res-intro').textContent = 'Dullness and uneven texture respond best to the full protocol. Stage 1 deposits PDRN where topicals can\'t reach. Stage 2 drives deeper activation. Stage 3 seals and enhances luminosity.';
+    document.getElementById('role1').textContent = 'Deposit';
+    document.getElementById('role2').textContent = 'Activate';
+    document.getElementById('role3').textContent = 'Seal & brighten';
+  } else if (concern.includes('Dark spots') || concern.includes('Multiple')) {
+    document.getElementById('res-title').textContent = 'Protocol focus: Deep pigmentation correction';
+    document.getElementById('res-intro').textContent = 'Hyperpigmentation and dark spots require active delivery at dermal depth — not just surface application. Here is exactly how the 3-stage protocol targets your concerns.';
+    document.getElementById('role1').textContent = 'Priority stage';
+    document.getElementById('desc1').textContent = 'Gold-chrome pins create micro-channels while PDRN is placed directly at dermal depth — precisely where pigmentation originates. Not absorbed. Not applied topically. Delivered.';
+  }
+}
+</script>
+</body>
+</html>
